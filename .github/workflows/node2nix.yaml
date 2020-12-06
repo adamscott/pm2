@@ -17,24 +17,31 @@ jobs:
           node-version: '14'
       - name: Fetch upstream
         run: |
+          git fetch origin
+          git fetch origin --tags
+
           git remote add upstream https://github.com/Unitech/pm2.git
           git fetch upstream
           git fetch upstream --tags
       - name: Get tags and compare
         run: |
           SUFFIX=node2nix
+          echo "SUFFIX=$SUFFIX"
           echo "SUFFIX=$SUFFIX" >> $GITHUB_ENV
 
           LAST_TAG=$(git tag -l --sort=-committerdate | head -n 1)
+          echo "LAST_TAG=$LAST_TAG"
           echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
 
           LAST_NODE2NIX_TAG=$(git tag -l --sort=-committerdate "*-node2nix" | head -n 1)
+          echo "LAST_NODE2NIX_TAG=$LAST_NODE2NIX_TAG"
           echo "LAST_NODE2NIX_TAG=$LAST_NODE2NIX_TAG" >> $GITHUB_ENV
 
           # [ "$LAST_TAG" = "$LAST_NODE2NIX_TAG" ] returns 0 if true, 1 if false
           # But, HAS_BEEN_UPDATED needs to flip the result (1 if true, 0 if false)
           # Fortunately, GitHub interpret the 0 as false and 1 as true
           HAS_BEEN_UPDATED=$([ "$LAST_TAG" = "$LAST_NODE2NIX_TAG" ]; echo $?)
+          echo "HAS_BEEN_UPDATED=$HAS_BEEN_UPDATED"
           echo "HAS_BEEN_UPDATED=$HAS_BEEN_UPDATED" >> $GITHUB_ENV
       - name: Merge to new tag
         if: ${{ env.HAS_BEEN_UPDATED }}
