@@ -1,0 +1,56 @@
+name: node2nix
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  update:
+    name: Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pm2-node2nix
+        uses: actions/checkout@v2
+      - name: Setup Node v14
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14'
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/Unitech/pm2.git
+          git fetch upstream
+          git fetch upstream --tags
+      - name: Get tags and compare
+        run: |
+          SUFFIX=node2nix
+          echo "SUFFIX=$SUFFIX" >> $GITHUB_ENV
+
+          LAST_TAG=$(git tag -l --sort=-committerdate | head -n 1)
+          echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
+
+          LAST_NODE2NIX_TAG=$(git tag -l --sort=-committerdate "*-node2nix" | head -n 1)
+          echo "LAST_NODE2NIX_TAG=$LAST_NODE2NIX_TAG" >> $GITHUB_ENV
+
+          # [ "$LAST_TAG" = "$LAST_NODE2NIX_TAG" ] returns 0 if true, 1 if false
+          # But, HAS_BEEN_UPDATED needs to flip the result (1 if true, 0 if false)
+          # Fortunately, GitHub interpret the 0 as false and 1 as true
+          HAS_BEEN_UPDATED=$([ "$LAST_TAG" = "$LAST_NODE2NIX_TAG" ]; echo $?)
+          echo "HAS_BEEN_UPDATED=$HAS_BEEN_UPDATED" >> $GITHUB_ENV
+      - name: Nothing to do!
+        if: ${{ !env.HAS_BEEN_UPDATED }}
+      - name: Merge to new tag
+        if: ${{ env.HAS_BEEN_UPDATED }}
+        run: |
+          git merge $LAST_TAG
+      - name: Run node2nix
+        if: ${{ env.HAS_BEEN_UPDATED }}
+        run: |
+          npx node2nix
+      - name: Commit, tag and push
+        if: ${{ env.HAS_BEEN_UPDATED }}
+        run: |
+          git add .
+          NEW_TAG="$LAST_TAG-$SUFFIX"
+          git commit -m "pm2@$NEW_TAG"
+          git tag "$NEW_TAG"
+          git push
