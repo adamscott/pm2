@@ -36,8 +36,6 @@ jobs:
           # Fortunately, GitHub interpret the 0 as false and 1 as true
           HAS_BEEN_UPDATED=$([ "$LAST_TAG" = "$LAST_NODE2NIX_TAG" ]; echo $?)
           echo "HAS_BEEN_UPDATED=$HAS_BEEN_UPDATED" >> $GITHUB_ENV
-      - name: Nothing to do!
-        if: ${{ !env.HAS_BEEN_UPDATED }}
       - name: Merge to new tag
         if: ${{ env.HAS_BEEN_UPDATED }}
         run: |
