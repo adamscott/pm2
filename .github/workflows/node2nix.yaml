@@ -44,15 +44,15 @@ jobs:
           echo "HAS_BEEN_UPDATED=$HAS_BEEN_UPDATED"
           echo "HAS_BEEN_UPDATED=$HAS_BEEN_UPDATED" >> $GITHUB_ENV
       - name: Merge to new tag
-        if: ${{ env.HAS_BEEN_UPDATED }}
+        if: ${{ env.HAS_BEEN_UPDATED == true }}
         run: |
           git merge $LAST_TAG
       - name: Run node2nix
-        if: ${{ env.HAS_BEEN_UPDATED }}
+        if: ${{ env.HAS_BEEN_UPDATED == true }}
         run: |
           npx node2nix
       - name: Commit, tag and push
-        if: ${{ env.HAS_BEEN_UPDATED }}
+        if: ${{ env.HAS_BEEN_UPDATED == true }}
         run: |
           git add .
           NEW_TAG="$LAST_TAG-$SUFFIX"
