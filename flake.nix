@@ -5,7 +5,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = inputs@{ self, flake-utils, nixpkgs, leadfox-overlays, ... }:
+  outputs = inputs@{ self, flake-utils, nixpkgs, ... }:
     let
       inherit (nixpkgs.lib) attrValues;
       inherit (flake-utils.lib) eachDefaultSystem mkApp;
